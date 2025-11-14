@@ -250,6 +250,7 @@ async function handleRoomFormSubmit(e) {
             // Room exists, check password
             if (roomSnap.data().passwordHash === passwordHash) {
                 // Password matches, navigate to name screen
+                currentRoom = roomName; // <-- THE FIX IS HERE
                 isNavigating = true; // Set lock
                 window.location.hash = roomName; // Set hash
                 showUI('name'); // Show name UI *before* hashchange fires
@@ -265,6 +266,7 @@ async function handleRoomFormSubmit(e) {
                 createdAt: serverTimestamp()
             });
             // Room created, navigate to name screen
+            currentRoom = roomName; // <-- THE FIX IS HERE
             isNavigating = true; // Set lock
             window.location.hash = roomName; // Set hash
             showUI('name'); // Show name UI
@@ -389,6 +391,10 @@ async function handleNameFormSubmit(e) {
 async function handleLeaveRoom() {
     if (!currentRoom || !userName || !currentUserId) return;
 
+    // Hide sidebar if open
+    dom.sidebar.classList.add('-translate-x-full');
+    dom.sidebarOverlay.classList.add('hidden');
+
     try {
         // 1. Post "User has left" message
         await addDoc(collection(db, 'chat-rooms', currentRoom, 'messages'), {
@@ -425,10 +431,12 @@ function listenForMessages() {
 
     unsubscribeMessages = onSnapshot(q, (snapshot) => {
         let messages = [];
+        let modifiedMessages = [];
+
         snapshot.docChanges().forEach(change => {
+            const msgData = { id: change.doc.id, ...change.doc.data() };
             if (change.type === 'added') {
-                const msgData = change.doc.data();
-                messages.push({ id: change.doc.id, ...msgData });
+                messages.push(msgData);
                 // Handle title notification
                 if (msgData.senderId !== currentUserId && !isWindowActive) {
                     unreadMessages++;
@@ -436,12 +444,16 @@ function listenForMessages() {
                 }
             } else if (change.type === 'modified') {
                 // Handle timestamp updates for our own messages
-                const msgData = change.doc.data();
                 if (msgData.senderId === currentUserId) {
                     const msgElement = document.querySelector(`[data-id="${change.doc.id}"] .chat-timestamp`);
                     if (msgElement) {
                         msgElement.textContent = formatTimestamp(msgData.timestamp);
                     }
+                }
+            } else if (change.type === 'removed') {
+                const msgElement = document.querySelector(`[data-id="${change.doc.id}"]`);
+                if (msgElement) {
+                    msgElement.remove();
                 }
             }
         });
@@ -494,6 +506,8 @@ function renderMessages(messages, type) {
         dom.messageList.innerHTML = '';
     }
     
+    const shouldScroll = dom.messageList.scrollTop + dom.messageList.clientHeight >= dom.messageList.scrollHeight - 30;
+
     messages.forEach(msg => {
         const isSelf = msg.senderId === currentUserId;
         const isSystem = msg.senderId === 'system';
@@ -539,8 +553,10 @@ function renderMessages(messages, type) {
         dom.messageList.appendChild(messageWrapper);
     });
 
-    // Auto-scroll to bottom
-    dom.messageList.scrollTop = dom.messageList.scrollHeight;
+    // Auto-scroll to bottom only if user was already at the bottom
+    if (shouldScroll) {
+        dom.messageList.scrollTop = dom.messageList.scrollHeight;
+    }
 }
 
 /**
@@ -624,6 +640,9 @@ async function handleDeleteChat() {
         });
         await batch.commit();
 
+        // Clear local messages immediately
+        dom.messageList.innerHTML = '';
+
         // Add a system message
         await addDoc(collection(db, collectionPath), {
             type: 'event',
@@ -631,10 +650,9 @@ async function handleDeleteChat() {
             timestamp: serverTimestamp(),
             senderId: 'system'
         });
-
-        // Clear local messages and re-listen
-        dom.messageList.innerHTML = '';
-        listenForMessages(); // Re-listen to get the 'cleared' message
+        
+        // No need to re-listen, the 'added' event for the system message
+        // will be caught by the active listener.
 
     } catch (error) {
         console.error("Error deleting chat:", error);
