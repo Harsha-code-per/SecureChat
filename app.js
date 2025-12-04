@@ -3,7 +3,7 @@
 * This file handles all the client-side logic for the SecureChat app.
 * It works with the Firebase SDK (imported in index.html) and manipulates the DOM.
 */
-
+//updates done here
 // Import necessary Firebase functions (these are available globally from the script in index.html)
 const {
     getFirestore, doc, addDoc, collection, onSnapshot, query,
