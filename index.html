@@ -6,7 +6,17 @@
     <title>SecureChat</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        /* Base responsive font and spacing settings */
+        html {
+            font-size: clamp(14px, 2vw, 16px);
+        }
+        
+        body { 
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        
+        /* Scrollbar styling */
         #message-list::-webkit-scrollbar { width: 6px; }
         #message-list::-webkit-scrollbar-track { background: #1f2937; }
         #message-list::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 3px; }
@@ -57,9 +67,10 @@
         /* Message input auto-resize */
         #message-input {
             resize: none;
-            min-height: 48px;
+            min-height: 2.5rem;
             max-height: 150px;
             transition: height 0.2s ease;
+            font-size: 1rem;
         }
         
         /* Button hover effects */
@@ -79,6 +90,7 @@
         /* Sidebar smooth transition */
         #sidebar {
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            width: clamp(200px, 30vw, 300px);
         }
         
         /* Loading spinner animation */
@@ -114,6 +126,211 @@
         #user-list li:hover {
             background-color: #4b5563;
         }
+        
+        /* Responsive text sizes */
+        h1 { font-size: clamp(1.25rem, 5vw, 1.875rem); }
+        h2 { font-size: clamp(1.5rem, 5vw, 2rem); }
+        h3 { font-size: clamp(1rem, 4vw, 1.25rem); }
+        
+        /* Mobile-first responsive design */
+        
+        /* Extra small devices (< 640px) */
+        @media (max-width: 639px) {
+            body {
+                padding: 0;
+            }
+            
+            #message-input {
+                min-height: 2.25rem;
+                font-size: 0.95rem;
+            }
+            
+            #sidebar {
+                width: 100%;
+                max-width: 280px;
+                font-size: 0.9rem;
+            }
+            
+            /* Reduce padding on small screens */
+            #room-selection-ui,
+            #password-verify-ui,
+            #name-selection-ui {
+                padding: 1rem !important;
+            }
+            
+            .max-w-lg {
+                max-width: 100% !important;
+                padding: 0 1rem;
+            }
+            
+            /* Form inputs responsive */
+            input[type="text"],
+            input[type="password"] {
+                padding: 0.65rem !important;
+                font-size: 0.95rem !important;
+            }
+            
+            /* Button text responsive */
+            button {
+                padding: 0.65rem !important;
+                font-size: 0.9rem !important;
+            }
+            
+            /* Header responsive */
+            header {
+                padding: 0.75rem !important;
+                gap: 0.5rem !important;
+            }
+            
+            header h1 {
+                font-size: 1.25rem;
+            }
+            
+            #chat-room-display {
+                font-size: 0.75rem;
+                max-width: 120px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            
+            /* Header icons smaller on mobile */
+            header button svg {
+                width: 1.25rem;
+                height: 1.25rem;
+            }
+            
+            /* Chat area responsive */
+            #message-list {
+                padding: 1rem !important;
+                gap: 0.5rem !important;
+                margin-bottom: 0.5rem !important;
+            }
+            
+            #message-form {
+                gap: 0.5rem !important;
+            }
+            
+            #message-form button {
+                padding: 0.5rem !important;
+            }
+            
+            #message-form button svg {
+                width: 1.25rem;
+                height: 1.25rem;
+            }
+            
+            /* User list responsive */
+            #user-list li {
+                padding: 0.5rem !important;
+                font-size: 0.85rem;
+            }
+            
+            #user-count {
+                font-size: 0.7rem;
+            }
+        }
+        
+        /* Small devices (640px - 767px) */
+        @media (min-width: 640px) and (max-width: 767px) {
+            #sidebar {
+                width: 250px;
+            }
+            
+            #message-input {
+                min-height: 2.5rem;
+                font-size: 0.95rem;
+            }
+            
+            #room-selection-ui,
+            #password-verify-ui,
+            #name-selection-ui {
+                padding: 1.5rem !important;
+            }
+            
+            input[type="text"],
+            input[type="password"] {
+                padding: 0.7rem !important;
+                font-size: 0.95rem !important;
+            }
+            
+            button {
+                padding: 0.7rem !important;
+                font-size: 0.95rem !important;
+            }
+            
+            #chat-room-display {
+                font-size: 0.8rem;
+                max-width: 150px;
+            }
+            
+            #message-list {
+                padding: 1.25rem !important;
+            }
+        }
+        
+        /* Medium devices (768px - 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            #sidebar {
+                width: 280px;
+            }
+            
+            #message-input {
+                min-height: 2.75rem;
+            }
+            
+            #room-selection-ui,
+            #password-verify-ui,
+            #name-selection-ui {
+                padding: 2rem !important;
+            }
+            
+            .max-w-lg {
+                max-width: 100% !important;
+            }
+        }
+        
+        /* Large devices (1024px and up) */
+        @media (min-width: 1024px) {
+            #sidebar {
+                width: 300px;
+            }
+            
+            #message-input {
+                min-height: 3rem;
+            }
+            
+            #room-selection-ui,
+            #password-verify-ui,
+            #name-selection-ui {
+                padding: 2.5rem !important;
+            }
+            
+            .max-w-lg {
+                max-width: 28rem;
+            }
+        }
+        
+        /* Prevent horizontal scroll on all devices */
+        * {
+            box-sizing: border-box;
+        }
+        
+        main {
+            overflow: hidden;
+        }
+        
+        /* Ensure message items don't overflow */
+        .message-item {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+        
+        /* Ensure text doesn't overflow containers */
+        .message-item p {
+            max-width: 100%;
+            word-break: break-word;
+        }
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -124,21 +341,21 @@
     <div class="w-full h-full md:h-[90vh] md:max-h-[700px] md:max-w-4xl bg-gray-800 md:rounded-lg shadow-2xl flex flex-col">
 
         <!-- Header -->
-        <header class="bg-gray-700 p-4 rounded-t-lg shadow-md flex justify-between items-center flex-shrink-0 z-10">
-            <div class="flex items-center gap-4">
+        <header class="bg-gray-700 p-2 sm:p-3 md:p-4 rounded-t-lg shadow-md flex justify-between items-center flex-shrink-0 z-10 gap-2 sm:gap-4">
+            <div class="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-1">
                 <!-- Hamburger button (always visible in chat) -->
-                <button id="sidebar-toggle-btn" class="hidden text-gray-400 hover:text-white">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                <button id="sidebar-toggle-btn" class="hidden text-gray-400 hover:text-white flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
-                <h1 class="text-xl font-bold">SecureChat</h1>
+                <h1 class="font-bold truncate">SecureChat</h1>
             </div>
-            <div class="flex items-center gap-4">
-                <div id="chat-room-display" class="text-sm text-gray-300 font-mono"></div>
-                <button id="leave-chat-header-btn" title="Leave Room" class="hidden text-gray-400 hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+            <div class="flex items-center gap-1 sm:gap-2 md:gap-4 flex-shrink-0">
+                <div id="chat-room-display" class="text-xs sm:text-sm text-gray-300 font-mono truncate"></div>
+                <button id="leave-chat-header-btn" title="Leave Room" class="hidden text-gray-400 hover:text-white transition-colors flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                 </button>
-                <button id="delete-chat-btn" title="Delete All Messages" class="hidden text-gray-400 hover:text-red-500 transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                <button id="delete-chat-btn" title="Delete All Messages" class="hidden text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+                    <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                 </button>
             </div>
         </header>
@@ -160,16 +377,15 @@
             </div>
 
             <!-- UI: Room Selection -->
-            <!-- CORE FIX: Added 'p-6' here -->
-            <div id="room-selection-ui" class="w-full h-full p-6">
-                <div class="max-w-lg mx-auto">
-                    <h2 class="text-2xl font-semibold mb-4 text-center">Create or Join a Room</h2>
-                    <p class="text-gray-400 text-center mb-6">Enter a unique room name and a password.</p>
-                    <form id="room-form" class="flex flex-col gap-4">
-                        <input type="text" id="room-input" placeholder="e.g., 'secret-project-delta'" class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <input type="password" id="room-password-input" placeholder="Enter a password" class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <div id="room-error" class="text-red-400 text-sm text-center hidden"></div>
-                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+            <div id="room-selection-ui" class="w-full h-full p-4 sm:p-6 md:p-8">
+                <div class="max-w-lg mx-auto w-full">
+                    <h2 class="font-semibold mb-3 sm:mb-4 text-center">Create or Join a Room</h2>
+                    <p class="text-gray-400 text-center mb-5 sm:mb-6 text-sm sm:text-base">Enter a unique room name and a password.</p>
+                    <form id="room-form" class="flex flex-col gap-3 sm:gap-4">
+                        <input type="text" id="room-input" placeholder="e.g., 'secret-project-delta'" class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" required>
+                        <input type="password" id="room-password-input" placeholder="Enter a password" class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" required>
+                        <div id="room-error" class="text-red-400 text-xs sm:text-sm text-center hidden"></div>
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 sm:py-3 px-4 rounded-lg transition duration-200 text-sm sm:text-base">
                             Create / Join Room
                         </button>
                     </form>
@@ -177,34 +393,32 @@
             </div>
 
             <!-- UI: Password Verification (for joining via URL) -->
-            <!-- CORE FIX: Added 'p-6' here -->
-            <div id="password-verify-ui" class="hidden w-full h-full p-6">
-                <div class="max-w-lg mx-auto">
-                    <h2 class="text-2xl font-semibold mb-4 text-center">Enter Room Password</h2>
-                    <p class="text-gray-400 text-center mb-6">This room is password protected. Please enter the password to join.</p>
-                    <form id="password-verify-form" class="flex flex-col gap-4">
-                        <input type="password" id="password-verify-input" placeholder="Enter password" class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <div id="password-error" class="text-red-400 text-sm text-center hidden"></div>
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+            <div id="password-verify-ui" class="hidden w-full h-full p-4 sm:p-6 md:p-8">
+                <div class="max-w-lg mx-auto w-full">
+                    <h2 class="font-semibold mb-3 sm:mb-4 text-center">Enter Room Password</h2>
+                    <p class="text-gray-400 text-center mb-5 sm:mb-6 text-sm sm:text-base">This room is password protected. Please enter the password to join.</p>
+                    <form id="password-verify-form" class="flex flex-col gap-3 sm:gap-4">
+                        <input type="password" id="password-verify-input" placeholder="Enter password" class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" required>
+                        <div id="password-error" class="text-red-400 text-xs sm:text-sm text-center hidden"></div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 sm:py-3 px-4 rounded-lg transition duration-200 text-sm sm:text-base">
                             Enter Room
                         </button>
                     </form>
-                    <button id="back-to-rooms-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 mt-4">
+                    <button id="back-to-rooms-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 sm:py-3 px-4 rounded-lg transition duration-200 mt-3 sm:mt-4 text-sm sm:text-base">
                         Back to Room List
                     </button>
                 </div>
             </div>
 
             <!-- UI: Name Selection -->
-            <!-- CORE FIX: Added 'p-6' here -->
-            <div id="name-selection-ui" class="hidden w-full h-full p-6">
-                <div class="max-w-lg mx-auto">
-                    <h2 class="text-2xl font-semibold mb-4 text-center">Enter Your Name</h2>
-                    <p class="text-gray-400 text-center mb-6">This name will be visible to others in the chat.</p>
-                    <form id="name-form" class="flex flex-col gap-4">
-                        <input type="text" id="name-input" placeholder="e.g., 'Alice'" class="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        <div id="name-error" class="text-red-400 text-sm text-center hidden"></div>
-                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+            <div id="name-selection-ui" class="hidden w-full h-full p-4 sm:p-6 md:p-8">
+                <div class="max-w-lg mx-auto w-full">
+                    <h2 class="font-semibold mb-3 sm:mb-4 text-center">Enter Your Name</h2>
+                    <p class="text-gray-400 text-center mb-5 sm:mb-6 text-sm sm:text-base">This name will be visible to others in the chat.</p>
+                    <form id="name-form" class="flex flex-col gap-3 sm:gap-4">
+                        <input type="text" id="name-input" placeholder="e.g., 'Alice'" class="w-full px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" required>
+                        <div id="name-error" class="text-red-400 text-xs sm:text-sm text-center hidden"></div>
+                        <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 sm:py-3 px-4 rounded-lg transition duration-200 text-sm sm:text-base">
                             Join Chat
                         </button>
                     </form>
@@ -214,34 +428,32 @@
             <!-- UI: Chat -->
             <div id="chat-ui" class="hidden h-full w-full flex flex-col relative">
                 <!-- Sidebar (Users in Room) -->
-                <!-- CORE FIX: Sidebar is now positioned relative to 'chat-ui' which has no padding, so 'left-0' is the true edge. -->
-                <div id="sidebar" class="absolute inset-y-0 left-0 w-64 flex-shrink-0 bg-gray-700 p-4 rounded-lg flex flex-col z-30 -translate-x-full transition-transform duration-300 ease-in-out h-full">
-                    <h3 class="text-lg font-semibold mb-4 border-b border-gray-600 pb-2 flex justify-between items-center">
+                <div id="sidebar" class="absolute inset-y-0 left-0 flex-shrink-0 bg-gray-700 p-3 sm:p-4 rounded-lg flex flex-col z-30 -translate-x-full transition-transform duration-300 ease-in-out h-full">
+                    <h3 class="font-semibold mb-3 sm:mb-4 border-b border-gray-600 pb-2 flex justify-between items-center text-sm sm:text-base">
                         Users in Room
                         <span id="user-count" class="text-sm text-gray-300">(0)</span>
                     </h3>
-                    <ul id="user-list" class="flex-grow overflow-y-auto space-y-2 no-scrollbar">
+                    <ul id="user-list" class="flex-grow overflow-y-auto space-y-1 sm:space-y-2 no-scrollbar">
                         <!-- User list will be injected here -->
                     </ul>
                 </div>
                 
                 <!-- Main Chat Area -->
-                <!-- CORE FIX: Added 'p-6' here so chat messages/form have padding. -->
-                <div class="flex-grow flex flex-col min-h-0 p-6">
+                <div class="flex-grow flex flex-col min-h-0 p-3 sm:p-4 md:p-6">
                     <!-- Message List -->
-                    <div id="message-list" class="flex-grow overflow-y-auto mb-4 p-4 bg-gray-900 rounded-lg space-y-4">
+                    <div id="message-list" class="flex-grow overflow-y-auto mb-3 sm:mb-4 p-3 sm:p-4 bg-gray-900 rounded-lg space-y-3 sm:space-y-4">
                         <!-- Messages will be injected here by JavaScript -->
                     </div>
                     
                     <!-- Message Input Form -->
-                    <form id="message-form" class="flex-shrink-0 flex gap-3 items-end">
+                    <form id="message-form" class="flex-shrink-0 flex gap-2 sm:gap-3 items-end">
                         <!-- 
                           Changed to textarea for multi-line support
                           autocomplete="off" tells the browser not to save or suggest previous entries.
                         -->
-                        <textarea id="message-input" placeholder="Enter your message..." class="flex-grow px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required autocomplete="off" rows="1"></textarea>
-                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-3 px-5 rounded-lg transition duration-200 flex-shrink-0">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <textarea id="message-input" placeholder="Enter your message..." class="flex-grow px-3 sm:px-4 py-2 sm:py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base" required autocomplete="off" rows="1"></textarea>
+                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition duration-200 flex-shrink-0">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                             </svg>
                         </button>
@@ -254,14 +466,14 @@
 
     <!-- Delete Chat Modal -->
     <div id="delete-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
-        <div class="bg-gray-800 rounded-lg shadow-2xl p-6 max-w-sm w-full">
-            <h3 class="text-xl font-semibold mb-4">Delete Chat History?</h3>
-            <p class="text-gray-300 mb-6">Are you sure you want to permanently delete all messages in this room? This cannot be undone.</p>
-            <div class="flex justify-end gap-4">
-                <button id="cancel-delete-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+        <div class="bg-gray-800 rounded-lg shadow-2xl p-4 sm:p-6 max-w-sm w-full">
+            <h3 class="font-semibold mb-3 sm:mb-4">Delete Chat History?</h3>
+            <p class="text-gray-300 mb-5 sm:mb-6 text-sm sm:text-base">Are you sure you want to permanently delete all messages in this room? This cannot be undone.</p>
+            <div class="flex justify-end gap-3 sm:gap-4">
+                <button id="cancel-delete-btn" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition duration-200 text-sm sm:text-base">
                     Cancel
                 </button>
-                <button id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200">
+                <button id="confirm-delete-btn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 sm:px-4 rounded-lg transition duration-200 text-sm sm:text-base">
                     Delete
                 </button>
             </div>

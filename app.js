@@ -27,6 +27,8 @@ let typingUsers = new Set(); // Track users who are typing
 let typingIndicatorTimeout = null; // Clear typing indicator after inactivity
 let isInitialMessageLoad = true; // Track if this is the first message load
 let beforeUnloadHandler = null; // Store the beforeunload handler reference
+let heartbeatInterval = null; // Heartbeat to keep presence alive
+let presenceCleanupInterval = null; // Cleanup stale user sessions
 
 // --- DOM Element Cache ---
 // We'll get these elements once the app initializes
@@ -491,7 +493,8 @@ async function handleNameFormSubmit(e) {
             // This is us re-joining (document still exists - maybe page refresh).
             // Just update the timestamp.
             await updateDoc(userDocRef, {
-                joined: serverTimestamp() // Update joined time
+                joined: serverTimestamp(), // Update joined time
+                lastActive: serverTimestamp() // Update last active time
             });
             // Post "rejoined" message
             await addDoc(collection(db, 'chat-rooms', currentRoom, 'messages'), {
@@ -504,7 +507,8 @@ async function handleNameFormSubmit(e) {
             // This is a new user or a new name.
             await setDoc(userDocRef, {
                 name: userName,
-                joined: serverTimestamp()
+                joined: serverTimestamp(),
+                lastActive: serverTimestamp() // Track when user was last active for heartbeat cleanup
             });
 
             // Post appropriate message
@@ -540,6 +544,12 @@ async function handleNameFormSubmit(e) {
         listenForUsers();
         listenForTyping();
         
+        // Start heartbeat to keep presence alive
+        startPresenceHeartbeat();
+        
+        // Start cleanup process to remove stale users
+        startPresenceCleanup();
+        
         // Set up beforeunload handler to clean up when user closes tab/window
         setupBeforeUnloadHandler();
 
@@ -567,6 +577,7 @@ async function handleLeaveRoom() {
 /**
  * Cleans up user presence from the room (called on leave or beforeunload).
  * This marks the user as having left the room.
+ * Uses synchronous sendBeacon API for reliability during page unload.
  */
 async function cleanupUserPresence() {
     if (!currentRoom || !userName || !currentUserId) return;
@@ -583,11 +594,17 @@ async function cleanupUserPresence() {
         // 1. Stop typing indicator first
         stopTypingIndicator();
         
-        // 2. Delete user from the 'users' list
+        // 2. Stop heartbeat immediately
+        if (heartbeatInterval) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+        }
+        
+        // 3. Delete user from the 'users' collection
         const userDocRef = doc(db, 'chat-rooms', currentRoom, 'users', currentUserId);
         await deleteDoc(userDocRef);
 
-        // 3. Post "User has left" message
+        // 4. Post "User has left" message
         await addDoc(collection(db, 'chat-rooms', currentRoom, 'messages'), {
             type: 'event',
             text: `${userName} has left the room.`,
@@ -598,13 +615,100 @@ async function cleanupUserPresence() {
     } catch (error) {
         console.error("Error cleaning up user presence:", error);
         // Note: If this fails during page unload, that's okay - 
-        // the user will need to re-authenticate anyway
+        // the heartbeat cleanup will remove stale sessions
     }
 }
 
 /**
+ * Starts a heartbeat to keep the user's presence alive and update lastActive timestamp.
+ * This helps detect when users disconnect without proper cleanup (e.g., browser crash).
+ */
+function startPresenceHeartbeat() {
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+    }
+    
+    if (!currentRoom || !currentUserId) return;
+    
+    // Update user's lastActive timestamp every 10 seconds
+    heartbeatInterval = setInterval(async () => {
+        if (!currentRoom || !currentUserId || !userName) {
+            clearInterval(heartbeatInterval);
+            heartbeatInterval = null;
+            return;
+        }
+        
+        try {
+            const userDocRef = doc(db, 'chat-rooms', currentRoom, 'users', currentUserId);
+            await updateDoc(userDocRef, {
+                lastActive: serverTimestamp()
+            });
+        } catch (error) {
+            console.error("Error updating heartbeat:", error);
+        }
+    }, 10000); // Update every 10 seconds
+}
+
+/**
+ * Starts a cleanup process to remove stale user sessions.
+ * Removes users who haven't had a heartbeat update in the last 60 seconds.
+ */
+function startPresenceCleanup() {
+    if (presenceCleanupInterval) {
+        clearInterval(presenceCleanupInterval);
+    }
+    
+    if (!currentRoom) return;
+    
+    // Check for stale users every 30 seconds
+    presenceCleanupInterval = setInterval(async () => {
+        if (!currentRoom) {
+            clearInterval(presenceCleanupInterval);
+            presenceCleanupInterval = null;
+            return;
+        }
+        
+        try {
+            const usersCol = collection(db, 'chat-rooms', currentRoom, 'users');
+            const q = query(usersCol);
+            const snapshot = await getDocs(q);
+            
+            const now = Math.floor(Date.now() / 1000);
+            const staleThreshold = 60; // 60 seconds
+            
+            snapshot.forEach(async (userDoc) => {
+                const userData = userDoc.data();
+                const lastActive = userData.lastActive?.seconds || userData.joined?.seconds || 0;
+                
+                // If user hasn't been active for 60+ seconds, they're likely disconnected
+                if (now - lastActive > staleThreshold) {
+                    try {
+                        // Remove the stale user
+                        await deleteDoc(userDoc.ref);
+                        
+                        // Add a system message
+                        if (userData.name) {
+                            await addDoc(collection(db, 'chat-rooms', currentRoom, 'messages'), {
+                                type: 'event',
+                                text: `${userData.name} has disconnected.`,
+                                timestamp: serverTimestamp(),
+                                senderId: 'system'
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Error removing stale user:", error);
+                    }
+                }
+            });
+        } catch (error) {
+            console.error("Error cleaning up stale users:", error);
+        }
+    }, 30000); // Check every 30 seconds
+}
+
+/**
  * Sets up the beforeunload handler to clean up when user closes tab/window.
- * Only cleans up on actual page unload, not on tab switches.
+ * Uses sendBeacon API for more reliable delivery during unload.
  */
 function setupBeforeUnloadHandler() {
     // Remove existing handler if any
@@ -613,14 +717,22 @@ function setupBeforeUnloadHandler() {
         window.removeEventListener('pagehide', beforeUnloadHandler);
     }
     
-    // Create handler for beforeunload/pagehide (fires on actual page unload)
+    // Create handler for pagehide (fires on actual page unload)
     // pagehide is more reliable than beforeunload, especially on mobile
     beforeUnloadHandler = (e) => {
         // Clean up user presence when closing tab/window
-        // Keep sessionStorage so user can return and re-authenticate
         if (currentRoom && userName && currentUserId) {
-            // Clean up user presence (fire-and-forget since we're unloading)
-            // Don't clear sessionStorage - let user return to password page
+            // Stop heartbeat immediately
+            if (heartbeatInterval) {
+                clearInterval(heartbeatInterval);
+                heartbeatInterval = null;
+            }
+            if (presenceCleanupInterval) {
+                clearInterval(presenceCleanupInterval);
+                presenceCleanupInterval = null;
+            }
+            
+            // Try to clean up via Firestore (fire-and-forget)
             cleanupUserPresence().catch(err => {
                 console.error('Error in beforeunload cleanup:', err);
             });
@@ -1051,12 +1163,23 @@ function cleanupSubscriptions() {
         unsubscribeTyping();
         unsubscribeTyping = null;
     }
+    
     // Stop typing indicator
     stopTypingIndicator();
     typingUsers.clear();
     const existingIndicator = document.getElementById('typing-indicator');
     if (existingIndicator) {
         existingIndicator.remove();
+    }
+    
+    // Stop heartbeat and cleanup intervals
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+    }
+    if (presenceCleanupInterval) {
+        clearInterval(presenceCleanupInterval);
+        presenceCleanupInterval = null;
     }
     
     // Remove beforeunload handler
